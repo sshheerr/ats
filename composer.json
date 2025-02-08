@@ -1,0 +1,8 @@
+{
+    "require": {
+        "spatie/pdf-to-text": "^1.54",
+        "phpoffice/phpword": "^1.3",
+        "smalot/pdfparser": "^2.11",
+        "tecnickcom/tcpdf": "^6.8"
+    }
+}

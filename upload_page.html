@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS File Upload</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        input[type="file"], textarea {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a {
+            padding: 8px 16px;
+            margin: 0 5px;
+            text-decoration: none;
+            background-color: #f1f1f1;
+            color: #333;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .pagination a:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Candidate Files</h1>
+        <form action="" method="POST" enctype="multipart/form-data">
+            <input type="file" name="files[]" multiple required>
+            <button type="submit">Upload</button>
+        </form>
+
+        <h2>Uploaded Files</h2>
+        <form action="" method="POST">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hot Candidate</th>
+                        <th>File Name</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Skills</th>
+                        <th>Uploaded At</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="hot_candidates[]" value="<?php echo $row['id']; ?>" <?php echo $row['hot'] ? 'checked' : ''; ?>>
+                            </td>
+                            <td><?php echo htmlspecialchars($row['file_name']); ?>
+                                <a href="<?php echo $row['file_url']; ?>" target="_blank">View</a>
+                            </td>
+                            <td><?php echo htmlspecialchars($row['name']); ?></td>
+                            <td><?php echo htmlspecialchars($row['email']); ?></td>
+                            <td><?php echo htmlspecialchars($row['phone']); ?></td>
+                            <td><?php echo htmlspecialchars($row['skills']); ?></td>
+                            <td><?php echo htmlspecialchars($row['uploaded_at']); ?></td>
+                            <td>
+                                <form action="" method="POST">
+                                    <input type="hidden" name="file_id" value="<?php echo $row['id']; ?>">
+                                    <textarea name="note" placeholder="Add a note..."></textarea>
+                                    <button type="submit" name="save_note">Save Note</button>
+                                </form>
+                                <?php
+                                // Fetch existing notes for this file
+                                $note_result = $conn->query("SELECT note FROM notes WHERE file_id = " . $row['id']);
+                                while ($note = $note_result->fetch_assoc()) {
+                                    echo "<p>" . htmlspecialchars($note['note']) . "</p>";
+                                }
+                                ?>
+                            </td>
+                            <td>
+                                <form action="" method="POST" style="display:inline;">
+                                    <input type="hidden" name="delete_file_id" value="<?php echo $row['id']; ?>">
+                                    <button type="submit" name="delete_file">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <?php
+                // Get total number of files
+                $totalResult = $conn->query("SELECT COUNT(*) AS total FROM files");
+                $totalFiles = $totalResult->fetch_assoc()['total'];
+                $totalPages = ($totalFiles > 0) ? ceil($totalFiles / $limit) : 1; // Ensure at least 1 page
+                ?>
+
+                <div>
+                    <?php if ($page > 1): ?>
+                        <a href="?page=<?= $page - 1 ?>">Previous</a>
+                    <?php endif; ?>
+
+                    Page <?= $page ?> of <?= $totalPages ?>
+
+                    <?php if ($page < $totalPages): ?>
+                        <a href="?page=<?= $page + 1 ?>">Next</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <button type="submit">Update Hot Candidates</button>
+        </form>
+    </div>
+</body>
+</html>
